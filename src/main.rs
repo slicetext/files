@@ -1,12 +1,15 @@
-use std::{fmt::format, fs::{self}, path::PathBuf};
+use std::{fs::{self}, path::PathBuf, process::Command};
+use time::{format_description, OffsetDateTime};
 
-use eframe::{egui, run_simple_native};
+use eframe::egui;
 
 const APP_NAME: &str = "File Explorer";
 
 struct FileData {
     name: String,
     size: u64,
+    path: PathBuf,
+    access: String,
 }
 
 struct DirData {
@@ -34,6 +37,17 @@ fn get_dir(path: &str) -> Vec<ItemData> {
             files.push(ItemData::File(FileData {
                 name: item.file_name().into_string().unwrap(),
                 size: item.metadata().unwrap().len(),
+                path: item.path(),
+                access: match item.metadata().unwrap().accessed() {
+                    Ok(a) => {
+                        let format=format_description::parse("[year]-[month]-[day] [hour]:[minute]").unwrap();
+                        let time: OffsetDateTime = a.into();
+                        time.format(&format).unwrap()
+                    }
+                    Err(_) => {
+                        String::from("")
+                    }
+                }
             }));
         }
     }
@@ -55,12 +69,17 @@ fn main() {
             for i in get_dir(&path) {
                 match i {
                     ItemData::Dir(d) => {
-                        if ui.button(format!("{}",d.name)).clicked() {
+                        if ui.button(format!("📁 {}",d.name)).clicked() {
                             path = d.path.to_str().unwrap().to_owned();
                         }
                     },
                     ItemData::File(d) => {
-                        ui.label(format!("{} -- {}",d.name, d.size));
+                        if ui.button(format!("🗒️ {} -- {} bytes -- {}",d.name, d.size, d.access)).clicked() {
+                            let _ = Command::new("xdg-open")
+                                .arg(d.path.to_str().unwrap())
+                                .spawn()
+                                .unwrap();
+                        }
                     }
                 };
             }
