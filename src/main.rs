@@ -115,29 +115,6 @@ fn main() {
                 }
                 ui.label(path.to_string_lossy());
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
-                    if rename_open {
-                        let edit = ui.text_edit_singleline(&mut rename_text);
-                        if edit.lost_focus() {
-                            let mut new_path = rename_path.clone();
-                            new_path.pop();
-                            new_path.push(&rename_text);
-                            if new_path.exists() {
-                                let mut i = 0;
-                                loop {
-                                    new_path.pop();
-                                    new_path.push(rename_text.clone()+&i.to_string());
-                                    if !new_path.exists() {
-                                        break;
-                                    }
-                                    i += 1;
-                                }
-                            }
-                            fs::rename(&rename_path, &new_path).unwrap();
-                            rename_text = String::new();
-                            rename_open = false;
-                        }
-                        edit.request_focus();
-                    }
                     if ui.button("+").clicked() {
                         let mut new_path = path.clone();
                         new_path.push("new_file.txt");
@@ -169,6 +146,29 @@ fn main() {
                             }
                         }
                         fs::create_dir(&new_path).unwrap();
+                    }
+                    if rename_open {
+                        let edit = ui.text_edit_singleline(&mut rename_text);
+                        if edit.lost_focus() {
+                            let mut new_path = rename_path.clone();
+                            new_path.pop();
+                            new_path.push(&rename_text);
+                            if new_path.exists() {
+                                let mut i = 0;
+                                loop {
+                                    new_path.pop();
+                                    new_path.push(rename_text.clone()+&i.to_string());
+                                    if !new_path.exists() {
+                                        break;
+                                    }
+                                    i += 1;
+                                }
+                            }
+                            fs::rename(&rename_path, &new_path).unwrap();
+                            rename_text = String::new();
+                            rename_open = false;
+                        }
+                        edit.request_focus();
                     }
                 });
             });
