@@ -121,6 +121,17 @@ fn main() {
                             let mut new_path = rename_path.clone();
                             new_path.pop();
                             new_path.push(&rename_text);
+                            if new_path.exists() {
+                                let mut i = 0;
+                                loop {
+                                    new_path.pop();
+                                    new_path.push(rename_text.clone()+&i.to_string());
+                                    if !new_path.exists() {
+                                        break;
+                                    }
+                                    i += 1;
+                                }
+                            }
                             fs::rename(&rename_path, &new_path).unwrap();
                             rename_text = String::new();
                             rename_open = false;
@@ -130,11 +141,33 @@ fn main() {
                     if ui.button("+").clicked() {
                         let mut new_path = path.clone();
                         new_path.push("new_file.txt");
+                        if new_path.exists() {
+                            let mut i = 0;
+                            loop {
+                                new_path.pop();
+                                new_path.push("new_file_".to_owned()+&i.to_string()+".txt");
+                                if !new_path.exists() {
+                                    break;
+                                }
+                                i += 1;
+                            }
+                        }
                         fs::write(new_path,"").unwrap();
                     }
                     if ui.button("New Folder").clicked() {
                         let mut new_path = path.clone();
                         new_path.push("new_folder");
+                        if new_path.exists() {
+                            let mut i = 0;
+                            loop {
+                                new_path.pop();
+                                new_path.push("new_folder_".to_owned()+&i.to_string());
+                                if !new_path.exists() {
+                                    break;
+                                }
+                                i += 1;
+                            }
+                        }
                         fs::create_dir(&new_path).unwrap();
                     }
                 });
